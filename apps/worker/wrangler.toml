@@ -1,0 +1,33 @@
+name = "ribbit-worker"
+main = "src/index.ts"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ----- D1 (relational: leads + error logs) -----
+[[d1_databases]]
+binding = "DB"
+database_name = "ribbit-db"
+# For purely-local dev this id is a placeholder; wrangler only needs it to
+# satisfy the schema. `--local` uses an on-disk SQLite file under .wrangler/.
+database_id = "00000000-0000-0000-0000-000000000000"
+
+# ----- KV (ephemeral: flakiness flag + UI warnings) -----
+[[kv_namespaces]]
+binding = "CACHE"
+id = "ribbit_cache_local"
+
+# ----- Optional: Workers AI for real CroakScore enrichment -----
+# Disabled by default: the [ai] binding requires a remote proxy session
+# (Cloudflare credentials), which breaks fully-local dev. The prototype uses a
+# deterministic mock (USE_REAL_AI="false"). To use real Workers AI: uncomment
+# the block below, run `wrangler login`, and set USE_REAL_AI="true".
+# [ai]
+# binding = "AI"
+
+[vars]
+ENVIRONMENT = "development"
+# Set to "true" to call Workers AI instead of the deterministic mock.
+USE_REAL_AI = "false"
+
+[dev]
+port = 8787

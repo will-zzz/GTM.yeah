@@ -70,7 +70,7 @@ npm run seed             # requires worker running; 3 complete + 2 incomplete le
 ## Project Structure
 
 ```
-gtm-yeah/
+GTM.yeah/
 ├── apps/
 │   ├── worker/          # Cloudflare Worker (Hono + D1 + KV)
 │   └── web/             # Vite + React + Tailwind dashboard

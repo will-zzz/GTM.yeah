@@ -51,7 +51,7 @@ export default function App() {
                 GTM<span className="text-brand">.yeah</span>
               </h1>
               <p className="text-xs text-muted">
-                GTM handoff ingestor · Rivet Accounting
+                GTM handoff ingestor
               </p>
             </div>
 

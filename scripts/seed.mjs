@@ -23,10 +23,10 @@ const validPayloads = [
     event: "deal.closed_won",
     record: {
       id: "seed_002",
-      companyName: "Reed & Rivet",
-      domain: "reedrivet.com",
+      companyName: "Walsh Consulting",
+      domain: "walshconsulting.com",
       entityType: "C-Corp",
-      primaryContact: { name: "Fiona Walsh", email: "fiona@reedrivet.com" },
+      primaryContact: { name: "Fiona Walsh", email: "fiona@walshconsulting.com" },
       financialHistory: true,
     },
   },

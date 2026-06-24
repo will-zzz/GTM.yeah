@@ -1,6 +1,6 @@
 # GTM.yeah
 
-**GTM.yeah** is an internal go-to-market engineering platform for Rivet — an AI-powered accounting firm. It ingests closed-won deal handoffs from Attio, validates required CPA onboarding data, enriches leads with an AI-generated pitch hook and priority score, and demonstrates production-grade reliability with a toggleable chaos mode — all on Cloudflare Workers, D1, and KV with a Vite + React dashboard.
+**GTM.yeah** is an interview demo of a go-to-market engineering platform. It ingests closed-won deal handoffs from Attio, validates required CPA onboarding data, enriches leads with an AI-generated pitch hook and priority score, and demonstrates production-grade reliability with a toggleable chaos mode — all on Cloudflare Workers, D1, and KV with a Vite + React dashboard.
 
 ## Architecture
 

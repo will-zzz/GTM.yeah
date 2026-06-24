@@ -27,7 +27,7 @@ function mockLeadScore({ companyName, domain }: LeadScoreInput): LeadScoreResult
     priority === "High"
       ? `${companyName} is a strong fit for automated month-end close and real-time books — lead with ROI on finance team hours saved.`
       : priority === "Medium"
-        ? `${companyName} shows solid potential — position Rivet as a faster close with fewer manual reconciliations.`
+        ? `${companyName} shows solid potential — lead with a faster close and fewer manual reconciliations.`
         : `${companyName} may need nurture — highlight compliance-ready reporting and scalable bookkeeping.`;
   return { leadScore, priority, pitchHook };
 }
@@ -50,7 +50,7 @@ export async function generateLeadScore(
           {
             role: "system",
             content:
-              "You are a B2B sales strategist for an AI-powered accounting firm. Reply with exactly ONE punchy sentence: a sales pitch hook. No preamble.",
+              "You are a B2B sales strategist. Reply with exactly ONE punchy sentence: a sales pitch hook. No preamble.",
           },
           {
             role: "user",

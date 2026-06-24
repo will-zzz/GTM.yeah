@@ -25,35 +25,35 @@ export default function FlakinessToggle({ flakiness, onChange }: Props) {
 
   return (
     <div
-      className={`lily-pad p-4 transition-all duration-300 ${
-        flakiness ? "storm-panel" : "calm-panel"
+      className={`card p-4 transition-all duration-300 ${
+        flakiness ? "panel-chaos-on" : "panel-chaos-off"
       }`}
     >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide opacity-80">
+          <p className="text-xs uppercase tracking-wide opacity-70">
             System Resilience
           </p>
-          <h2 className="text-lg font-bold">
-            {flakiness ? "⛈️ Storm Mode — Flakiness ON" : "☀️ Calm Pond — Flakiness OFF"}
+          <h2 className="text-lg font-semibold">
+            {flakiness ? "Chaos mode enabled" : "Normal operation"}
           </h2>
-          <p className="text-sm opacity-90 mt-1">
+          <p className="text-sm opacity-80 mt-1">
             {flakiness
               ? "~50% of inbound webhooks and outbound Slack alerts will fail by design."
-              : "All requests flow normally. Flip to demo bulletproof error handling."}
+              : "All requests flow normally. Enable chaos to demo error handling."}
           </p>
         </div>
         <button
           type="button"
           disabled={busy}
           onClick={handleToggle}
-          className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
+          className={`shrink-0 rounded-lg px-5 py-2.5 text-sm font-semibold transition disabled:opacity-50 ${
             flakiness
-              ? "bg-amber-400 text-storm hover:bg-amber-300"
-              : "bg-frog text-white hover:bg-frog-dark"
+              ? "bg-amber-400 text-slate-900 hover:bg-amber-300"
+              : "bg-brand text-white hover:bg-brand-dark"
           }`}
         >
-          {busy ? "Toggling…" : flakiness ? "Calm the pond" : "Summon storm"}
+          {busy ? "Updating…" : flakiness ? "Disable chaos" : "Enable chaos"}
         </button>
       </div>
       {error && (

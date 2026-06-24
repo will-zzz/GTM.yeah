@@ -100,4 +100,17 @@ export async function toggleFlakiness(
   return body.data;
 }
 
+export async function resetDemoData(): Promise<{ warningsCleared: number }> {
+  const res = await fetch("/api/dev/reset", { method: "POST" });
+  const body = await parseJson<ApiResponse<{ warningsCleared: number }>>(res);
+  if (!body.ok || !body.data) {
+    throw new ApiClientError(
+      body.error?.type ?? "UnhandledError",
+      body.error?.message ?? "Failed to reset data",
+      body.error?.requestId ?? "unknown",
+    );
+  }
+  return body.data;
+}
+
 export { ApiClientError };

@@ -1,6 +1,6 @@
-import type { CroakScoreResult, Env, Priority } from "../types";
+import type { Env, LeadScoreResult, Priority } from "../types";
 
-interface CroakInput {
+interface LeadScoreInput {
   companyName: string;
   domain: string | null;
 }
@@ -19,32 +19,29 @@ function scoreToPriority(score: number): Priority {
   return "Low";
 }
 
-/** Deterministic, offline-safe enrichment. Same input always yields same score. */
-function mockCroak({ companyName, domain }: CroakInput): CroakScoreResult {
+function mockLeadScore({ companyName, domain }: LeadScoreInput): LeadScoreResult {
   const seed = domain || companyName || "unknown";
-  const croakScore = hashString(seed) % 101; // 0-100
-  const priority = scoreToPriority(croakScore);
-  const vibe =
+  const leadScore = hashString(seed) % 101;
+  const priority = scoreToPriority(leadScore);
+  const pitchHook =
     priority === "High"
-      ? "ready to leap"
+      ? `${companyName} is a strong fit for automated month-end close and real-time books — lead with ROI on finance team hours saved.`
       : priority === "Medium"
-        ? "worth a hop"
-        : "still settling into the pond";
-  const pitchHook = `${companyName} looks ${vibe} — lead with automated month-end close and real-time books to win their finance team.`;
-  return { croakScore, priority, pitchHook };
+        ? `${companyName} shows solid potential — position Rivet as a faster close with fewer manual reconciliations.`
+        : `${companyName} may need nurture — highlight compliance-ready reporting and scalable bookkeeping.`;
+  return { leadScore, priority, pitchHook };
 }
 
 /**
- * Background utility called during ingestion. Mocks an LLM scan of the company's
- * domain to produce a 1-sentence pitch hook + priority. Uses Workers AI only
- * when explicitly enabled; otherwise the deterministic mock. NEVER throws —
- * any AI error falls back to the mock so ingestion can't be blocked by the LLM.
+ * Background enrichment during ingestion. Mocks an LLM scan of the company domain
+ * to produce a 1-sentence pitch hook and priority score. Uses Workers AI only when
+ * explicitly enabled; otherwise a deterministic mock. Never throws.
  */
-export async function generateCroakScore(
+export async function generateLeadScore(
   env: Env,
-  input: CroakInput,
-): Promise<CroakScoreResult> {
-  const base = mockCroak(input);
+  input: LeadScoreInput,
+): Promise<LeadScoreResult> {
+  const base = mockLeadScore(input);
 
   if (env.USE_REAL_AI === "true" && env.AI) {
     try {
@@ -68,7 +65,7 @@ export async function generateCroakScore(
         JSON.stringify({
           level: "warning",
           type: "AIFallback",
-          message: "Workers AI failed; using mock CroakScore",
+          message: "Workers AI failed; using mock Lead Score",
           cause: e instanceof Error ? e.message : String(e),
         }),
       );

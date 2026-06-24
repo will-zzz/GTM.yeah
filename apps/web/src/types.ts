@@ -1,7 +1,4 @@
-// ---- Handoff status (the Tadpole -> Frog lifecycle) ----
-export type HandoffStatus =
-  | "Ready for CPA"
-  | "Stuck in Tadpole Stage";
+export type HandoffStatus = "Ready for CPA" | "Incomplete";
 
 export type Priority = "High" | "Medium" | "Low";
 
@@ -16,7 +13,7 @@ export interface Lead {
   hasFinancialHistory: boolean;
   status: HandoffStatus;
   missingFields: string[];
-  croakScore: number | null;
+  leadScore: number | null;
   priority: Priority | null;
   pitchHook: string | null;
   rawPayload: unknown;

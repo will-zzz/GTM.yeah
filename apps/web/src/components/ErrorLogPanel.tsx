@@ -40,10 +40,10 @@ export default function ErrorLogPanel() {
   }, []);
 
   return (
-    <div className="lily-pad p-4 h-full flex flex-col">
+    <div className="card p-4 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-frog-dark">Error Log</h2>
-        <span className="text-xs rounded-full bg-frog/10 text-frog px-2 py-0.5">
+        <h2 className="text-lg font-semibold text-slate-900">Error Log</h2>
+        <span className="text-xs rounded-full bg-slate-100 text-slate-600 px-2 py-0.5">
           {errors.length} entries
         </span>
       </div>
@@ -56,8 +56,8 @@ export default function ErrorLogPanel() {
 
       <div className="flex-1 overflow-y-auto space-y-2 max-h-[520px] pr-1">
         {errors.length === 0 ? (
-          <p className="text-sm text-frog/50 italic text-center py-8">
-            No errors logged yet — the pond is calm.
+          <p className="text-sm text-muted italic text-center py-8">
+            No errors logged yet.
           </p>
         ) : (
           errors.map((entry) => {
@@ -65,7 +65,7 @@ export default function ErrorLogPanel() {
             return (
               <div
                 key={entry.id}
-                className={`rounded-lg bg-white/80 pl-3 pr-3 py-2 ${severityClass(entry.severity)}`}
+                className={`rounded-lg bg-slate-50 pl-3 pr-3 py-2 ${severityClass(entry.severity)}`}
               >
                 <button
                   type="button"
@@ -78,20 +78,20 @@ export default function ErrorLogPanel() {
                     >
                       {entry.severity}
                     </span>
-                    <span className="text-[10px] font-mono text-frog/60">
+                    <span className="text-[10px] font-mono text-muted">
                       {entry.errorType}
                     </span>
-                    <span className="text-[10px] text-frog/40 ml-auto">
+                    <span className="text-[10px] text-slate-400 ml-auto">
                       {new Date(entry.createdAt).toLocaleTimeString()}
                     </span>
                   </div>
-                  <p className="text-sm text-frog-dark">{entry.message}</p>
-                  <p className="text-[10px] text-frog/50 mt-1">
+                  <p className="text-sm text-slate-800">{entry.message}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">
                     {entry.endpoint} · req {entry.requestId}
                   </p>
                 </button>
                 {isOpen && (
-                  <pre className="mt-2 text-[10px] font-mono bg-frog-dark/5 rounded p-2 overflow-x-auto">
+                  <pre className="mt-2 text-[10px] font-mono bg-slate-100 rounded p-2 overflow-x-auto">
                     {JSON.stringify(entry.context, null, 2)}
                   </pre>
                 )}

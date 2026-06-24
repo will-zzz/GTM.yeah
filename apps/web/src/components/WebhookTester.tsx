@@ -34,13 +34,13 @@ export default function WebhookTester({ onFired }: Props) {
   }
 
   return (
-    <div className="lily-pad p-4">
-      <h2 className="text-lg font-bold text-frog-dark mb-1">
+    <div className="card p-4">
+      <h2 className="text-lg font-semibold text-slate-900 mb-1">
         Attio Webhook Tester
       </h2>
-      <p className="text-sm text-frog/80 mb-4">
+      <p className="text-sm text-muted mb-4">
         Fire sample closed-won payloads at{" "}
-        <code className="text-xs bg-pond-deep/50 px-1.5 py-0.5 rounded">
+        <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">
           POST /api/webhook/attio
         </code>
       </p>
@@ -52,9 +52,9 @@ export default function WebhookTester({ onFired }: Props) {
             type="button"
             disabled={busy !== null}
             onClick={() => handleFire(label, payload)}
-            className="rounded-full border border-frog/20 bg-white px-4 py-2 text-sm font-medium text-frog-dark hover:bg-pond-deep/40 disabled:opacity-50 transition"
+            className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
           >
-            {busy === label ? "Firing…" : label}
+            {busy === label ? "Sending…" : label}
           </button>
         ))}
       </div>
@@ -63,13 +63,13 @@ export default function WebhookTester({ onFired }: Props) {
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+              className={`text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded ${
                 lastResponse.ok
                   ? "bg-emerald-100 text-emerald-800"
                   : "bg-red-100 text-red-800"
               }`}
             >
-              {lastResponse.ok ? "Success envelope" : "Error envelope"}
+              {lastResponse.ok ? "Success" : "Error"}
             </span>
             {!lastResponse.ok && lastResponse.error && (
               <span className="text-xs text-red-700">
@@ -97,7 +97,7 @@ export default function WebhookTester({ onFired }: Props) {
             </div>
           )}
 
-          <pre className="text-xs font-mono bg-frog-dark/5 rounded-lg p-3 overflow-x-auto max-h-48">
+          <pre className="text-xs font-mono bg-slate-100 rounded-lg p-3 overflow-x-auto max-h-48 text-slate-800">
             {JSON.stringify(lastResponse, null, 2)}
           </pre>
         </div>

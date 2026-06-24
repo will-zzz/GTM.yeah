@@ -1,5 +1,5 @@
 {
-  "name": "ribbit-gtm",
+  "name": "gtm-yeah",
   "private": true,
   "version": "0.1.0",
   "workspaces": [
@@ -10,7 +10,8 @@
     "dev:worker": "npm run dev --workspace apps/worker",
     "dev:web": "npm run dev --workspace apps/web",
     "db:init": "npm run db:init --workspace apps/worker",
-    "typecheck": "npm run typecheck --workspace apps/worker"
+    "seed": "node scripts/seed.mjs",
+    "typecheck": "npm run typecheck --workspace apps/worker && npm run typecheck --workspace apps/web"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"

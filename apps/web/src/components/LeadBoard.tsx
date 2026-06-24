@@ -28,14 +28,14 @@ export default function LeadBoard() {
     return () => window.clearInterval(id);
   }, []);
 
-  const tadpoles = leads.filter((l) => l.status === "Stuck in Tadpole Stage");
-  const frogs = leads.filter((l) => l.status === "Ready for CPA");
+  const incomplete = leads.filter((l) => l.status === "Incomplete");
+  const ready = leads.filter((l) => l.status === "Ready for CPA");
 
   return (
-    <div className="lily-pad p-4">
+    <div className="card p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-frog-dark">Handoff Board</h2>
-        <span className="text-xs text-frog/60">polls every 3s</span>
+        <h2 className="text-lg font-semibold text-slate-900">Handoff Board</h2>
+        <span className="text-xs text-muted">refreshes every 3s</span>
       </div>
 
       {error && (
@@ -45,43 +45,41 @@ export default function LeadBoard() {
       )}
 
       {loading && leads.length === 0 ? (
-        <p className="text-sm text-frog/60 text-center py-8">Loading the pond…</p>
+        <p className="text-sm text-muted text-center py-8">Loading leads…</p>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           <section>
             <header className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🐛</span>
-              <h3 className="font-semibold text-frog-dark">Tadpole Stage</h3>
-              <span className="text-xs rounded-full bg-red-100 text-red-700 px-2 py-0.5">
-                {tadpoles.length}
+              <h3 className="font-medium text-slate-900">Incomplete</h3>
+              <span className="text-xs rounded-full bg-amber-100 text-amber-900 px-2 py-0.5">
+                {incomplete.length}
               </span>
             </header>
             <div className="space-y-3">
-              {tadpoles.length === 0 ? (
-                <p className="text-sm text-frog/50 italic py-4 text-center">
-                  No stuck leads — nice and tidy.
+              {incomplete.length === 0 ? (
+                <p className="text-sm text-muted italic py-4 text-center">
+                  No incomplete handoffs.
                 </p>
               ) : (
-                tadpoles.map((lead) => <LeadCard key={lead.id} lead={lead} />)
+                incomplete.map((lead) => <LeadCard key={lead.id} lead={lead} />)
               )}
             </div>
           </section>
 
           <section>
             <header className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🐸</span>
-              <h3 className="font-semibold text-frog-dark">Ready for CPA</h3>
+              <h3 className="font-medium text-slate-900">Ready for CPA</h3>
               <span className="text-xs rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5">
-                {frogs.length}
+                {ready.length}
               </span>
             </header>
             <div className="space-y-3">
-              {frogs.length === 0 ? (
-                <p className="text-sm text-frog/50 italic py-4 text-center">
-                  Fire a valid webhook to spawn a frog.
+              {ready.length === 0 ? (
+                <p className="text-sm text-muted italic py-4 text-center">
+                  Fire a valid webhook to create a ready lead.
                 </p>
               ) : (
-                frogs.map((lead) => <LeadCard key={lead.id} lead={lead} />)
+                ready.map((lead) => <LeadCard key={lead.id} lead={lead} />)
               )}
             </div>
           </section>

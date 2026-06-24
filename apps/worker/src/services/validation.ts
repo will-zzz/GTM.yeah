@@ -22,10 +22,9 @@ const clean = (v: string | undefined | null): string | null => {
 };
 
 /**
- * Strict handoff validation. A lead becomes a "Frog" (Ready for CPA) only when
- * Company Name, Entity Type, a complete Primary Contact (name + email), and
- * Financial History are all present. Otherwise it's a stuck Tadpole and we
- * report exactly which fields are missing.
+ * Strict handoff validation. A lead is "Ready for CPA" only when Company Name,
+ * Entity Type, a complete Primary Contact (name + email), and Financial History
+ * are all present. Otherwise it is marked Incomplete with missingFields populated.
  */
 export function validateHandoff(payload: AttioWebhookPayload): ValidationResult {
   const record = payload?.record ?? {};

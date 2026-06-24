@@ -1,11 +1,5 @@
-import type {
-  CroakScoreResult,
-  Env,
-  Lead,
-  SystemErrorLog,
-} from "./types";
+import type { LeadScoreResult, Env, Lead, SystemErrorLog } from "./types";
 
-// ---- Row shapes as stored in SQLite (snake_case, 0/1 booleans, JSON text) ----
 interface LeadRow {
   id: string;
   attio_record_id: string | null;
@@ -57,7 +51,7 @@ function mapRowToLead(row: LeadRow): Lead {
     hasFinancialHistory: Boolean(row.has_financial_history),
     status: row.status as Lead["status"],
     missingFields: safeJsonParse<string[]>(row.missing_fields, []),
-    croakScore: row.croak_score,
+    leadScore: row.croak_score,
     priority: row.priority as Lead["priority"],
     pitchHook: row.pitch_hook,
     rawPayload: safeJsonParse<unknown>(row.raw_payload, null),
@@ -80,8 +74,6 @@ function mapRowToError(row: ErrorRow): SystemErrorLog {
   };
 }
 
-// ---- Leads ----
-
 export async function insertLead(env: Env, lead: Lead): Promise<void> {
   await env.DB.prepare(
     `INSERT INTO leads (
@@ -102,7 +94,7 @@ export async function insertLead(env: Env, lead: Lead): Promise<void> {
       lead.hasFinancialHistory ? 1 : 0,
       lead.status,
       JSON.stringify(lead.missingFields),
-      lead.croakScore,
+      lead.leadScore,
       lead.priority,
       lead.pitchHook,
       JSON.stringify(lead.rawPayload ?? null),
@@ -115,7 +107,7 @@ export async function insertLead(env: Env, lead: Lead): Promise<void> {
 export async function updateLeadEnrichment(
   env: Env,
   id: string,
-  croak: CroakScoreResult,
+  score: LeadScoreResult,
 ): Promise<void> {
   await env.DB.prepare(
     `UPDATE leads
@@ -123,9 +115,9 @@ export async function updateLeadEnrichment(
      WHERE id = ?`,
   )
     .bind(
-      croak.croakScore,
-      croak.priority,
-      croak.pitchHook,
+      score.leadScore,
+      score.priority,
+      score.pitchHook,
       new Date().toISOString(),
       id,
     )
@@ -152,8 +144,6 @@ export async function countLeads(env: Env): Promise<number> {
   ).first<{ n: number }>();
   return row?.n ?? 0;
 }
-
-// ---- Error logs ----
 
 export async function insertErrorLog(
   env: Env,
@@ -196,4 +186,29 @@ export async function countErrorLogs(env: Env): Promise<number> {
     `SELECT COUNT(*) AS n FROM error_logs`,
   ).first<{ n: number }>();
   return row?.n ?? 0;
+}
+
+/** Wipes all demo data from D1. Used by the dev-only reset endpoint. */
+export async function resetDatabase(env: Env): Promise<void> {
+  await env.DB.batch([
+    env.DB.prepare(`DELETE FROM leads`),
+    env.DB.prepare(`DELETE FROM error_logs`),
+  ]);
+}
+
+export async function clearLeadWarnings(env: Env): Promise<number> {
+  let deleted = 0;
+  let cursor: string | undefined;
+
+  do {
+    const list = await env.CACHE.list({
+      prefix: "warning:lead:",
+      ...(cursor ? { cursor } : {}),
+    });
+    await Promise.all(list.keys.map((k) => env.CACHE.delete(k.name)));
+    deleted += list.keys.length;
+    cursor = list.list_complete ? undefined : list.cursor;
+  } while (cursor);
+
+  return deleted;
 }

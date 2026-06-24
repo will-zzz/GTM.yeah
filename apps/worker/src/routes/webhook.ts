@@ -4,7 +4,7 @@ import { AppError } from "../lib/errors";
 import { newId } from "../lib/ids";
 import { logError } from "../lib/logger";
 import { chaosMiddleware } from "../lib/resilience";
-import { generateCroakScore } from "../services/croakscore";
+import { generateLeadScore } from "../services/leadscore";
 import { sendSlackAlert } from "../services/slack";
 import { validateHandoff, type NormalizedLead } from "../services/validation";
 import type { ApiResponse, AttioWebhookPayload, HonoEnv, Lead } from "../types";
@@ -24,9 +24,9 @@ function baseLead(id: string, n: NormalizedLead, payload: unknown, now: string):
     primaryContactName: n.primaryContactName,
     primaryContactEmail: n.primaryContactEmail,
     hasFinancialHistory: n.hasFinancialHistory,
-    status: "Stuck in Tadpole Stage",
+    status: "Incomplete",
     missingFields: [],
-    croakScore: null,
+    leadScore: null,
     priority: null,
     pitchHook: null,
     rawPayload: payload,
@@ -35,7 +35,6 @@ function baseLead(id: string, n: NormalizedLead, payload: unknown, now: string):
   };
 }
 
-// The Tadpole-to-Frog Handoff Ingestor. Opted into chaos (inbound webhook drops).
 webhook.post("/api/webhook/attio", chaosMiddleware, async (c) => {
   const rid = c.get("requestId");
 
@@ -53,14 +52,13 @@ webhook.post("/api/webhook/attio", chaosMiddleware, async (c) => {
   const id = newId("lead");
   const { valid, missingFields, normalized } = validateHandoff(payload);
 
-  // ---- Stuck in Tadpole Stage: a valid business outcome, not a 500 ----
   if (!valid) {
     const lead = baseLead(id, normalized, payload, now);
-    lead.status = "Stuck in Tadpole Stage";
+    lead.status = "Incomplete";
     lead.missingFields = missingFields;
     await insertLead(c.env, lead);
 
-    const warning = `Stuck in Tadpole Stage — missing: ${missingFields.join(", ")}`;
+    const warning = `Incomplete handoff — missing: ${missingFields.join(", ")}`;
     await c.env.CACHE.put(`warning:lead:${id}`, warning, {
       expirationTtl: WARNING_TTL_SECONDS,
     });
@@ -82,21 +80,18 @@ webhook.post("/api/webhook/attio", chaosMiddleware, async (c) => {
     return c.json(body);
   }
 
-  // ---- Ready for CPA: enrich (CroakScore), persist, then alert ----
-  const croak = await generateCroakScore(c.env, {
+  const score = await generateLeadScore(c.env, {
     companyName: normalized.companyName,
     domain: normalized.domain,
   });
 
   const lead = baseLead(id, normalized, payload, now);
   lead.status = "Ready for CPA";
-  lead.croakScore = croak.croakScore;
-  lead.priority = croak.priority;
-  lead.pitchHook = croak.pitchHook;
+  lead.leadScore = score.leadScore;
+  lead.priority = score.priority;
+  lead.pitchHook = score.pitchHook;
   await insertLead(c.env, lead);
 
-  // Outbound alert can fail (chaos / upstream). Trap it: the lead is already
-  // saved, so we degrade gracefully instead of failing the whole request.
   let degraded = false;
   let degradedReason: string | undefined;
   try {

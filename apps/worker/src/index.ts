@@ -4,6 +4,7 @@ import { AppError } from "./lib/errors";
 import { requestId as makeRequestId } from "./lib/ids";
 import { logError } from "./lib/logger";
 import errors from "./routes/errors";
+import dev from "./routes/dev";
 import leads from "./routes/leads";
 import system from "./routes/system";
 import webhook from "./routes/webhook";
@@ -24,6 +25,7 @@ app.route("/", webhook);
 app.route("/", system);
 app.route("/", leads);
 app.route("/", errors);
+app.route("/", dev);
 
 /**
  * Global error boundary. Every thrown error funnels through here, gets logged to

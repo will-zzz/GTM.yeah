@@ -1,10 +1,10 @@
 {
-  "name": "@ribbit/worker",
+  "name": "@gtm-yeah/worker",
   "private": true,
   "version": "0.1.0",
   "scripts": {
     "dev": "wrangler dev",
-    "db:init": "wrangler d1 execute ribbit-db --local --file=./schema.sql",
+    "db:init": "wrangler d1 execute gtm-yeah-db --local --file=./schema.sql",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -28,7 +28,7 @@ export async function sendSlackAlert(
       level: "info",
       type: "SlackAlert",
       channel: CHANNEL,
-      text: `🐸 New CPA-ready lead: ${lead.companyName} — CroakScore ${lead.croakScore} (${lead.priority}). ${lead.pitchHook}`,
+      text: `New CPA-ready lead: ${lead.companyName} — Lead Score ${lead.leadScore} (${lead.priority}). ${lead.pitchHook}`,
     }),
   );
 

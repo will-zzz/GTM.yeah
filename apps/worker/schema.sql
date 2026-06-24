@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS leads (
   has_financial_history INTEGER NOT NULL DEFAULT 0,  -- 0/1 boolean
   status                TEXT NOT NULL,               -- HandoffStatus union
   missing_fields        TEXT NOT NULL DEFAULT '[]',  -- JSON string[]
-  croak_score           INTEGER,                     -- 0-100 priority score
+  croak_score           INTEGER,                     -- 0-100 lead score (legacy column name)
   priority              TEXT,                        -- 'High' | 'Medium' | 'Low'
   pitch_hook            TEXT,                        -- 1-sentence LLM hook
   raw_payload           TEXT NOT NULL,               -- original webhook JSON

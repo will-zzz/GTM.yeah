@@ -13,10 +13,8 @@ export interface HonoEnv {
   Variables: { requestId: string };
 }
 
-// ---- Handoff status (the Tadpole -> Frog lifecycle) ----
-export type HandoffStatus =
-  | "Ready for CPA" // validated frog 🐸
-  | "Stuck in Tadpole Stage"; // missing required data 🐛
+// ---- Handoff status ----
+export type HandoffStatus = "Ready for CPA" | "Incomplete";
 
 export type Priority = "High" | "Medium" | "Low";
 
@@ -32,7 +30,7 @@ export interface Lead {
   hasFinancialHistory: boolean;
   status: HandoffStatus;
   missingFields: string[]; // e.g. ["Primary Contact", "Financial History"]
-  croakScore: number | null; // 0-100
+  leadScore: number | null; // 0-100
   priority: Priority | null;
   pitchHook: string | null; // 1-sentence sales hook from the LLM
   rawPayload: unknown; // original Attio webhook body
@@ -61,9 +59,9 @@ export interface SystemErrorLog {
   createdAt: string;
 }
 
-// ---- The CroakScore enrichment result ----
-export interface CroakScoreResult {
-  croakScore: number; // 0-100
+// ---- Lead Score enrichment result ----
+export interface LeadScoreResult {
+  leadScore: number; // 0-100
   priority: Priority;
   pitchHook: string;
 }

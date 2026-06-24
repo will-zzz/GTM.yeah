@@ -4,10 +4,10 @@ export const VALID_PAYLOAD: AttioWebhookPayload = {
   event: "deal.closed_won",
   record: {
     id: "attio_demo_001",
-    companyName: "Lily Pad Labs",
-    domain: "lilypad.io",
+    companyName: "Northwind Analytics",
+    domain: "northwind.io",
     entityType: "LLC",
-    primaryContact: { name: "Kermit", email: "k@lilypad.io" },
+    primaryContact: { name: "Sarah Chen", email: "sarah@northwind.io" },
     financialHistory: true,
   },
 };
@@ -16,8 +16,8 @@ export const INVALID_MISSING_CONTACT: AttioWebhookPayload = {
   event: "deal.closed_won",
   record: {
     id: "attio_demo_002",
-    companyName: "Bog Inc",
-    domain: "boginc.com",
+    companyName: "Summit Retail Group",
+    domain: "summitretail.com",
     entityType: "C-Corp",
     financialHistory: true,
   },
@@ -27,16 +27,16 @@ export const INVALID_MISSING_FINANCIALS: AttioWebhookPayload = {
   event: "deal.closed_won",
   record: {
     id: "attio_demo_003",
-    companyName: "Marsh & Co",
-    domain: "marsh.co",
+    companyName: "Meridian Health Co",
+    domain: "meridianhealth.co",
     entityType: "S-Corp",
-    primaryContact: { name: "Tad", email: "tad@marsh.co" },
+    primaryContact: { name: "James Ortiz", email: "jortiz@meridianhealth.co" },
     financialHistory: false,
   },
 };
 
 export const SAMPLE_PAYLOADS = [
-  { label: "Valid — Lily Pad Labs 🐸", payload: VALID_PAYLOAD },
-  { label: "Missing Contact 🐛", payload: INVALID_MISSING_CONTACT },
-  { label: "Missing Financials 🐛", payload: INVALID_MISSING_FINANCIALS },
+  { label: "Valid — Northwind Analytics", payload: VALID_PAYLOAD },
+  { label: "Missing Contact", payload: INVALID_MISSING_CONTACT },
+  { label: "Missing Financials", payload: INVALID_MISSING_FINANCIALS },
 ] as const;

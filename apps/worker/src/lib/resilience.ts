@@ -4,7 +4,7 @@ import { ChaosFailure } from "./errors";
 
 const FLAKINESS_KEY = "system:flakiness";
 
-/** Reads the global flakiness flag from KV. Defaults to false (calm pond). */
+/** Reads the global flakiness flag from KV. Defaults to false. */
 export async function getFlakiness(env: Env): Promise<boolean> {
   const value = await env.CACHE.get(FLAKINESS_KEY);
   return value === "true";

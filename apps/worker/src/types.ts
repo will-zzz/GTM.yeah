@@ -7,6 +7,12 @@ export interface Env {
   USE_REAL_AI: string;
 }
 
+// ---- Hono generics shared across the app (bindings + per-request variables) ----
+export interface HonoEnv {
+  Bindings: Env;
+  Variables: { requestId: string };
+}
+
 // ---- Handoff status (the Tadpole -> Frog lifecycle) ----
 export type HandoffStatus =
   | "Ready for CPA" // validated frog 🐸

@@ -1,13 +1,15 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import type { ApiResponse, Env, ErrorType, Severity } from "./types";
 import { AppError } from "./lib/errors";
-import { logError } from "./lib/logger";
 import { requestId as makeRequestId } from "./lib/ids";
+import { logError } from "./lib/logger";
+import errors from "./routes/errors";
+import leads from "./routes/leads";
+import system from "./routes/system";
+import webhook from "./routes/webhook";
+import type { ApiResponse, ErrorType, HonoEnv, Severity } from "./types";
 
-type Variables = { requestId: string };
-
-const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+const app = new Hono<HonoEnv>();
 
 app.use("/api/*", cors());
 
@@ -17,10 +19,11 @@ app.use("/api/*", async (c, next) => {
   await next();
 });
 
-// Phase 0 stub — replaced with full status payload in Phase 2.
-app.get("/api/system/status", (c) => {
-  return c.json({ ok: true, environment: c.env.ENVIRONMENT });
-});
+// ---- Routes ----
+app.route("/", webhook);
+app.route("/", system);
+app.route("/", leads);
+app.route("/", errors);
 
 /**
  * Global error boundary. Every thrown error funnels through here, gets logged to

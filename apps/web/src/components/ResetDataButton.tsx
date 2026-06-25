@@ -34,12 +34,12 @@ export default function ResetDataButton({ onReset }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-0.5">
       <button
         type="button"
         disabled={busy}
         onClick={handleReset}
-        className="text-xs rounded-lg border border-border bg-white px-3 py-1 font-medium text-muted hover:bg-slate-50 disabled:opacity-50 transition"
+        className="text-xs rounded-sm border border-zinc-200 bg-white px-2 py-1 font-medium text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700 disabled:opacity-50 transition"
         title="Dev only — clears leads, errors, and KV warnings"
       >
         {busy ? "Resetting…" : "Reset data"}

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { discoverProspects, getProspects, sequenceProspects } from "../api";
+import { useClientPagination } from "../lib/useClientPagination";
 import type { Prospect } from "../types";
+import PaginationBar from "./PaginationBar";
 
 const POLL_MS = 5000;
+const PAGE_SIZE = 8;
 
 function growthTier(growth: number): "high" | "medium" | "low" {
   if (growth >= 40) return "high";
@@ -13,11 +16,11 @@ function growthTier(growth: number): "high" | "medium" | "low" {
 function growthChipClass(tier: ReturnType<typeof growthTier>): string {
   switch (tier) {
     case "high":
-      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+      return "bg-emerald-50 text-emerald-800 border-emerald-200";
     case "medium":
-      return "bg-amber-100 text-amber-900 border-amber-200";
+      return "bg-amber-50 text-amber-900 border-amber-200";
     default:
-      return "bg-slate-100 text-slate-700 border-slate-200";
+      return "bg-zinc-100 text-zinc-700 border-zinc-200";
   }
 }
 
@@ -28,6 +31,15 @@ function formatGrowth(growth: number): string {
 function formatContactedAt(iso: string | null): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleString();
+}
+
+function matchesProspect(prospect: Prospect, query: string): boolean {
+  return (
+    prospect.companyName.toLowerCase().includes(query) ||
+    prospect.domain.toLowerCase().includes(query) ||
+    prospect.techStack.toLowerCase().includes(query) ||
+    prospect.sequenceStatus.toLowerCase().includes(query)
+  );
 }
 
 export default function ProspectProspectingPanel() {
@@ -57,18 +69,36 @@ export default function ProspectProspectingPanel() {
     return () => window.clearInterval(id);
   }, [refresh]);
 
-  const unassigned = useMemo(
-    () => prospects.filter((p) => p.sequenceStatus === "Unassigned"),
-    [prospects],
+  const filterFn = useCallback(
+    (prospect: Prospect, query: string) => matchesProspect(prospect, query),
+    [],
   );
 
-  const selectableIds = useMemo(
-    () => unassigned.map((p) => p.id),
-    [unassigned],
+  const {
+    query,
+    setQuery,
+    page,
+    setPage,
+    pageItems,
+    total,
+    totalPages,
+    rangeStart,
+    rangeEnd,
+  } = useClientPagination(prospects, filterFn, PAGE_SIZE);
+
+  const unassignedOnPage = useMemo(
+    () => pageItems.filter((p) => p.sequenceStatus === "Unassigned"),
+    [pageItems],
   );
 
-  const allSelected =
-    selectableIds.length > 0 && selectableIds.every((id) => selected.has(id));
+  const selectableOnPageIds = useMemo(
+    () => unassignedOnPage.map((p) => p.id),
+    [unassignedOnPage],
+  );
+
+  const allPageSelected =
+    selectableOnPageIds.length > 0 &&
+    selectableOnPageIds.every((id) => selected.has(id));
 
   function toggleOne(id: string) {
     setSelected((prev) => {
@@ -79,11 +109,19 @@ export default function ProspectProspectingPanel() {
     });
   }
 
-  function toggleAll() {
-    if (allSelected) {
-      setSelected(new Set());
+  function togglePageAll() {
+    if (allPageSelected) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        selectableOnPageIds.forEach((id) => next.delete(id));
+        return next;
+      });
     } else {
-      setSelected(new Set(selectableIds));
+      setSelected((prev) => {
+        const next = new Set(prev);
+        selectableOnPageIds.forEach((id) => next.add(id));
+        return next;
+      });
     }
   }
 
@@ -128,28 +166,27 @@ export default function ProspectProspectingPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="card p-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-4">
+      <div className="card p-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">
+            <p className="text-[10px] uppercase tracking-wide text-zinc-500 font-medium">
               Prospect Discovery Engine
             </p>
-            <h2 className="text-lg font-semibold text-slate-900">
+            <h2 className="text-sm font-semibold text-zinc-900 mt-0.5">
               Pre-Sales Outbound
             </h2>
-            <p className="text-sm text-muted mt-1 max-w-2xl">
-              Simulates a Harmonic growth-signal webhook and Apollo technographic
-              enrichment, then bulk-pushes selected accounts into an Instantly
-              email sequence.
+            <p className="text-xs text-zinc-500 mt-1 max-w-2xl">
+              Harmonic growth signals and Apollo technographics, sequenced via
+              Instantly.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
               disabled={discovering}
               onClick={handleDiscover}
-              className="rounded-lg bg-brand text-white px-4 py-2 text-sm font-semibold hover:bg-brand-dark disabled:opacity-50 transition"
+              className="rounded-sm bg-brand text-white px-3 py-1.5 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 transition"
             >
               {discovering ? "Discovering…" : "Run discovery"}
             </button>
@@ -157,7 +194,7 @@ export default function ProspectProspectingPanel() {
               type="button"
               disabled={sequencing || selected.size === 0}
               onClick={handleSequence}
-              className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition"
+              className="rounded-sm border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 transition"
             >
               {sequencing
                 ? "Sequencing…"
@@ -167,112 +204,131 @@ export default function ProspectProspectingPanel() {
         </div>
 
         {message && (
-          <p className="mt-3 text-sm rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-2">
+          <p className="mt-2 text-xs rounded-sm bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-1.5">
             {message}
           </p>
         )}
         {error && (
-          <p className="mt-3 text-sm rounded-lg bg-red-50 text-red-800 border border-red-200 px-3 py-2">
+          <p className="mt-2 text-xs rounded-sm bg-red-50 text-red-800 border border-red-200 px-2 py-1.5">
             {error}
           </p>
         )}
       </div>
 
       <div className="card overflow-hidden">
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-          <h3 className="font-semibold text-slate-900">Discovered accounts</h3>
-          <span className="text-xs text-muted">
-            {prospects.length} total · refreshes every 5s
-          </span>
+        <div className="px-3 py-2 border-b border-zinc-200 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-zinc-900">Discovered accounts</h3>
+          <span className="text-xs text-zinc-500">{total} entries · 5s refresh</span>
+        </div>
+
+        <div className="px-3 py-2 border-b border-zinc-200 bg-zinc-50/50">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search companies or tech stacks…"
+            className="input-field w-full max-w-md px-2.5 py-1.5"
+          />
         </div>
 
         {loading && prospects.length === 0 ? (
-          <p className="text-sm text-muted text-center py-12">Loading prospects…</p>
-        ) : prospects.length === 0 ? (
-          <p className="text-sm text-muted text-center py-12 italic">
-            No prospects yet — click Run discovery to simulate Harmonic + Apollo
-            enrichment.
+          <p className="text-sm text-zinc-500 text-center py-10">Loading prospects…</p>
+        ) : total === 0 ? (
+          <p className="text-sm text-zinc-500 text-center py-10">
+            {query
+              ? "No matches for your search."
+              : "No prospects yet — run discovery to populate the grid."}
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-muted">
-                  <th className="px-4 py-3 w-10">
-                    <input
-                      type="checkbox"
-                      checked={allSelected}
-                      onChange={toggleAll}
-                      disabled={selectableIds.length === 0}
-                      aria-label="Select all unassigned prospects"
-                      className="rounded border-border"
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-medium">Company</th>
-                  <th className="px-4 py-3 font-medium">Domain</th>
-                  <th className="px-4 py-3 font-medium">Headcount growth</th>
-                  <th className="px-4 py-3 font-medium">Tech stack</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Last contacted</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {prospects.map((prospect) => {
-                  const tier = growthTier(prospect.headcountGrowth);
-                  const isSequenced = prospect.sequenceStatus === "Sequenced";
-                  const canSelect = !isSequenced;
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-zinc-50 text-left text-[10px] uppercase tracking-wide text-zinc-500 border-b border-zinc-200">
+                    <th className="px-3 py-2 w-9">
+                      <input
+                        type="checkbox"
+                        checked={allPageSelected}
+                        onChange={togglePageAll}
+                        disabled={selectableOnPageIds.length === 0}
+                        aria-label="Select all unassigned on this page"
+                        className="rounded-sm border-zinc-300"
+                      />
+                    </th>
+                    <th className="px-3 py-2 font-medium">Company</th>
+                    <th className="px-3 py-2 font-medium">Domain</th>
+                    <th className="px-3 py-2 font-medium">Growth</th>
+                    <th className="px-3 py-2 font-medium">Tech stack</th>
+                    <th className="px-3 py-2 font-medium">Status</th>
+                    <th className="px-3 py-2 font-medium">Last contacted</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200">
+                  {pageItems.map((prospect) => {
+                    const tier = growthTier(prospect.headcountGrowth);
+                    const isSequenced = prospect.sequenceStatus === "Sequenced";
+                    const canSelect = !isSequenced;
 
-                  return (
-                    <tr
-                      key={prospect.id}
-                      className={isSequenced ? "bg-slate-50/80" : "hover:bg-slate-50/50"}
-                    >
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          checked={selected.has(prospect.id)}
-                          disabled={!canSelect}
-                          onChange={() => toggleOne(prospect.id)}
-                          aria-label={`Select ${prospect.companyName}`}
-                          className="rounded border-border disabled:opacity-40"
-                        />
-                      </td>
-                      <td className="px-4 py-3 font-medium text-slate-900">
-                        {prospect.companyName}
-                      </td>
-                      <td className="px-4 py-3 text-muted font-mono text-xs">
-                        {prospect.domain}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${growthChipClass(tier)}`}
-                        >
-                          {formatGrowth(prospect.headcountGrowth)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700 max-w-xs truncate">
-                        {prospect.techStack}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded ${
-                            isSequenced
-                              ? "bg-brand-light text-brand-dark"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {prospect.sequenceStatus}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted whitespace-nowrap">
-                        {formatContactedAt(prospect.lastContactedAt)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    return (
+                      <tr
+                        key={prospect.id}
+                        className={isSequenced ? "bg-zinc-50/60" : "hover:bg-zinc-50/80"}
+                      >
+                        <td className="px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={selected.has(prospect.id)}
+                            disabled={!canSelect}
+                            onChange={() => toggleOne(prospect.id)}
+                            aria-label={`Select ${prospect.companyName}`}
+                            className="rounded-sm border-zinc-300 disabled:opacity-40"
+                          />
+                        </td>
+                        <td className="px-3 py-2 font-medium text-zinc-900">
+                          {prospect.companyName}
+                        </td>
+                        <td className="px-3 py-2 text-zinc-500 font-mono text-xs">
+                          {prospect.domain}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex items-center rounded-sm border px-1.5 py-px text-[11px] font-medium ${growthChipClass(tier)}`}
+                          >
+                            {formatGrowth(prospect.headcountGrowth)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-zinc-600 max-w-[200px] truncate">
+                          {prospect.techStack}
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-px rounded-sm border ${
+                              isSequenced
+                                ? "bg-brand-light text-brand-dark border-blue-200"
+                                : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                            }`}
+                          >
+                            {prospect.sequenceStatus}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-xs text-zinc-500 whitespace-nowrap">
+                          {formatContactedAt(prospect.lastContactedAt)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <PaginationBar
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              total={total}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+            />
+          </>
         )}
       </div>
     </div>

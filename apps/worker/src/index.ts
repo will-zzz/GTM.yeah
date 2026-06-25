@@ -6,6 +6,7 @@ import { logError } from "./lib/logger";
 import errors from "./routes/errors";
 import dev from "./routes/dev";
 import leads from "./routes/leads";
+import prospects from "./routes/prospects";
 import system from "./routes/system";
 import webhook from "./routes/webhook";
 import type { ApiResponse, ErrorType, HonoEnv, Severity } from "./types";
@@ -24,6 +25,7 @@ app.use("/api/*", async (c, next) => {
 app.route("/", webhook);
 app.route("/", system);
 app.route("/", leads);
+app.route("/", prospects);
 app.route("/", errors);
 app.route("/", dev);
 

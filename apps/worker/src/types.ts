@@ -79,6 +79,30 @@ export interface AttioWebhookPayload {
   };
 }
 
+// ---- Pre-sales prospecting ----
+export type SequenceStatus = "Unassigned" | "Sequenced";
+
+export interface Prospect {
+  id: string;
+  companyName: string;
+  domain: string;
+  headcountGrowth: number;
+  techStack: string;
+  lastContactedAt: string | null;
+  sequenceStatus: SequenceStatus;
+  createdAt: string;
+}
+
+export interface DiscoverProspectsResult {
+  discovered: Prospect[];
+  skipped: number;
+}
+
+export interface SequenceProspectsResult {
+  sequenced: Prospect[];
+  notFound: string[];
+}
+
 // ---- Standard API envelope (consistent UI error boundaries) ----
 export interface ApiResponse<T> {
   ok: boolean;

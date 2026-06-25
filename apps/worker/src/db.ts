@@ -1,4 +1,11 @@
-import type { LeadScoreResult, Env, Lead, SystemErrorLog } from "./types";
+import type {
+  Env,
+  Lead,
+  LeadScoreResult,
+  Prospect,
+  SequenceStatus,
+  SystemErrorLog,
+} from "./types";
 
 interface LeadRow {
   id: string;
@@ -17,6 +24,17 @@ interface LeadRow {
   raw_payload: string;
   created_at: string;
   updated_at: string;
+}
+
+interface ProspectRow {
+  id: string;
+  company_name: string;
+  domain: string;
+  headcount_growth: number;
+  tech_stack: string;
+  last_contacted_at: string | null;
+  sequence_status: string;
+  created_at: string;
 }
 
 interface ErrorRow {
@@ -57,6 +75,19 @@ function mapRowToLead(row: LeadRow): Lead {
     rawPayload: safeJsonParse<unknown>(row.raw_payload, null),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function mapRowToProspect(row: ProspectRow): Prospect {
+  return {
+    id: row.id,
+    companyName: row.company_name,
+    domain: row.domain,
+    headcountGrowth: row.headcount_growth,
+    techStack: row.tech_stack,
+    lastContactedAt: row.last_contacted_at,
+    sequenceStatus: row.sequence_status as SequenceStatus,
+    createdAt: row.created_at,
   };
 }
 
@@ -138,6 +169,69 @@ export async function getLead(env: Env, id: string): Promise<Lead | null> {
   return row ? mapRowToLead(row) : null;
 }
 
+export async function insertProspect(env: Env, prospect: Prospect): Promise<void> {
+  await env.DB.prepare(
+    `INSERT INTO prospects (
+       id, company_name, domain, headcount_growth, tech_stack,
+       last_contacted_at, sequence_status, created_at
+     ) VALUES (?,?,?,?,?,?,?,?)`,
+  )
+    .bind(
+      prospect.id,
+      prospect.companyName,
+      prospect.domain,
+      prospect.headcountGrowth,
+      prospect.techStack,
+      prospect.lastContactedAt,
+      prospect.sequenceStatus,
+      prospect.createdAt,
+    )
+    .run();
+}
+
+export async function listProspects(env: Env): Promise<Prospect[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM prospects ORDER BY created_at DESC`,
+  ).all<ProspectRow>();
+  return (results ?? []).map(mapRowToProspect);
+}
+
+export async function getProspectByDomain(
+  env: Env,
+  domain: string,
+): Promise<Prospect | null> {
+  const row = await env.DB.prepare(`SELECT * FROM prospects WHERE domain = ?`)
+    .bind(domain)
+    .first<ProspectRow>();
+  return row ? mapRowToProspect(row) : null;
+}
+
+export async function getProspect(
+  env: Env,
+  id: string,
+): Promise<Prospect | null> {
+  const row = await env.DB.prepare(`SELECT * FROM prospects WHERE id = ?`)
+    .bind(id)
+    .first<ProspectRow>();
+  return row ? mapRowToProspect(row) : null;
+}
+
+export async function updateProspectStatus(
+  env: Env,
+  id: string,
+  sequenceStatus: SequenceStatus,
+  lastContactedAt: string | null,
+): Promise<Prospect | null> {
+  await env.DB.prepare(
+    `UPDATE prospects
+       SET sequence_status = ?, last_contacted_at = ?
+     WHERE id = ?`,
+  )
+    .bind(sequenceStatus, lastContactedAt, id)
+    .run();
+  return getProspect(env, id);
+}
+
 export async function countLeads(env: Env): Promise<number> {
   const row = await env.DB.prepare(
     `SELECT COUNT(*) AS n FROM leads`,
@@ -193,6 +287,7 @@ export async function resetDatabase(env: Env): Promise<void> {
   await env.DB.batch([
     env.DB.prepare(`DELETE FROM leads`),
     env.DB.prepare(`DELETE FROM error_logs`),
+    env.DB.prepare(`DELETE FROM prospects`),
   ]);
 }
 

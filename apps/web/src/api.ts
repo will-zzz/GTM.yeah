@@ -1,7 +1,10 @@
 import type {
   ApiResponse,
   AttioWebhookPayload,
+  DiscoverProspectsResult,
   Lead,
+  Prospect,
+  SequenceProspectsResult,
   SystemErrorLog,
   SystemStatus,
   WebhookSuccess,
@@ -107,6 +110,51 @@ export async function resetDemoData(): Promise<{ warningsCleared: number }> {
     throw new ApiClientError(
       body.error?.type ?? "UnhandledError",
       body.error?.message ?? "Failed to reset data",
+      body.error?.requestId ?? "unknown",
+    );
+  }
+  return body.data;
+}
+
+export async function getProspects(): Promise<Prospect[]> {
+  const res = await fetch("/api/prospects");
+  const body = await parseJson<ApiResponse<Prospect[]>>(res);
+  if (!body.ok || !body.data) {
+    throw new ApiClientError(
+      body.error?.type ?? "UnhandledError",
+      body.error?.message ?? "Failed to fetch prospects",
+      body.error?.requestId ?? "unknown",
+    );
+  }
+  return body.data;
+}
+
+export async function discoverProspects(): Promise<DiscoverProspectsResult> {
+  const res = await fetch("/api/prospects/discover", { method: "POST" });
+  const body = await parseJson<ApiResponse<DiscoverProspectsResult>>(res);
+  if (!body.ok || !body.data) {
+    throw new ApiClientError(
+      body.error?.type ?? "UnhandledError",
+      body.error?.message ?? "Failed to discover prospects",
+      body.error?.requestId ?? "unknown",
+    );
+  }
+  return body.data;
+}
+
+export async function sequenceProspects(
+  ids: string[],
+): Promise<SequenceProspectsResult> {
+  const res = await fetch("/api/prospects/sequence", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  const body = await parseJson<ApiResponse<SequenceProspectsResult>>(res);
+  if (!body.ok || !body.data) {
+    throw new ApiClientError(
+      body.error?.type ?? "UnhandledError",
+      body.error?.message ?? "Failed to sequence prospects",
       body.error?.requestId ?? "unknown",
     );
   }

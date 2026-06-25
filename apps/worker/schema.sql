@@ -34,3 +34,17 @@ CREATE TABLE IF NOT EXISTS error_logs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_errors_created ON error_logs(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS prospects (
+  id                TEXT PRIMARY KEY,
+  company_name      TEXT NOT NULL,
+  domain            TEXT NOT NULL UNIQUE,
+  headcount_growth  REAL NOT NULL,              -- Harmonic-style % YoY headcount growth
+  tech_stack        TEXT NOT NULL,              -- Apollo-style technographics
+  last_contacted_at TEXT,                       -- ISO timestamp, null until sequenced
+  sequence_status   TEXT NOT NULL DEFAULT 'Unassigned', -- 'Unassigned' | 'Sequenced'
+  created_at        TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_prospects_status ON prospects(sequence_status);
+CREATE INDEX IF NOT EXISTS idx_prospects_created ON prospects(created_at DESC);
